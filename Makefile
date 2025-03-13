@@ -1,4 +1,4 @@
-.PHONY: help install dev-setup lint test format run build deploy clean update-deps migrate backup-db restore-db
+.PHONY: help install dev-setup lint test format run build deploy clean update-deps migrate backup-db restore-db dev-up dev-down prod-up prod-down
 
 # Include environment variables from .env file
 -include .env
@@ -31,19 +31,31 @@ format: ## Format code
 
 update-deps: ## Update dependencies
 	@echo "$(GREEN)Updating dependencies...$(RESET)"
-	uv pip compile pyproject.toml -o requirements.txt
+	uv pip compile pyproject.toml -o backend/requirements.txt
 
-up: ## Run service in production mode
+dev-up: setup ## Run service in development mode
+	@echo "$(GREEN)Running service in development mode...$(RESET)"
+	docker-compose -f docker-compose.dev.yml up -d
+
+dev-down: ## Stop service in development mode
+	@echo "$(GREEN)Stopping service in development mode...$(RESET)"
+	docker-compose -f docker-compose.dev.yml down
+
+prod-up: setup ## Run service in production mode
 	@echo "$(GREEN)Running service in production mode...$(RESET)"
-	docker-compose -f docker-compose.yml up -d
+	docker-compose up -d
 
-down: ## Stop service in production mode
+prod-down: ## Stop service in production mode
 	@echo "$(GREEN)Stopping service in production mode...$(RESET)"
-	docker-compose -f docker-compose.yml down
+	docker-compose down
 
-build-docker: ## Build the docker image
-	@echo "$(GREEN)Building docker image...$(RESET)"
-	docker compose -f docker-compose.yml build
+build-dev: ## Build the development docker image
+	@echo "$(GREEN)Building development docker image...$(RESET)"
+	docker-compose -f docker-compose.dev.yml build
+
+build-prod: ## Build the production docker image
+	@echo "$(GREEN)Building production docker image...$(RESET)"
+	docker-compose build
 
 deploy: ## Deploy the service (placeholder)
 	@echo "$(YELLOW)Deploy script not implemented yet.$(RESET)"
@@ -62,24 +74,35 @@ docs-build: ## Build documentation
 	@echo "$(GREEN)Building documentation...$(RESET)"
 	mkdocs build
 
-
 # DataBase block
 setup:
 	mkdir -p database
 
-migrate: setup
-	cd backend  && python manage.py makemigrations && python manage.py migrate && cd ..
+migrate: setup ## Run Django migrations
+	cd backend && python manage.py makemigrations && python manage.py migrate && cd ..
 
-backup-db:
+backup-db: ## Backup the database
 	@mkdir -p backups
 	@cp database/db.sqlite3 backups/db-$(shell date +%Y%m%d%H%M%S).sqlite3
 	@echo "Database backed up to backups/"
 
-restore-db:
+restore-db: ## Restore a database backup (provide DB_FILE)
 	@if [ -z "$(DB_FILE)" ]; then echo "Usage: make restore-db DB_FILE=backups/filename.sqlite3"; exit 1; fi
 	@cp $(DB_FILE) database/db.sqlite3
 	@echo "Database restored from $(DB_FILE)"
 
-generate-key:
+generate-key: ## Generate a new Django secret key
 	@echo "$(GREEN)Generating secret key...$(RESET)"
-	@python -c "from django.core.management.utils import get_random_secret_key; print(f'Add this to your production environment: DJANGO_SECRET_KEY={get_random_secret_key()}')"
+	@python -c "from django.core.management.utils import get_random_secret_key; print(f'Add this to your .env file: DJANGO_SECRET_KEY={get_random_secret_key()}')"
+
+create-env: ## Create a .env file with a new secret key
+	@if [ -f .env ]; then \
+		echo "$(YELLOW).env file already exists. Rename or remove it first.$(RESET)"; \
+	else \
+		echo "$(GREEN)Creating .env file with a new secret key...$(RESET)"; \
+		SECRET_KEY=$$(python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"); \
+		echo "DJANGO_SECRET_KEY=$$SECRET_KEY" > .env; \
+		echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env; \
+		echo "DB_PATH=/database/db.sqlite3" >> .env; \
+		echo "$(GREEN).env file created with a new secret key.$(RESET)"; \
+	fi

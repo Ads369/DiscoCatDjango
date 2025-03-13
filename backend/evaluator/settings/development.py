@@ -17,7 +17,12 @@ CORS_ALLOW_ALL_ORIGINS = (
     os.environ.get("CORS_ORIGIN_ALLOW_ALL", "True").lower() == "true"
 )
 
-# Static files for development
+# In development, we'll collect static files into a different directory
+STATIC_ROOT = os.path.join(BASE_DIR, "static_collected")  # Different from base.py
+
+# Add development-specific static files directories if needed
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(
+        BASE_DIR, "static_dev"
+    ),  # Directory for additional static files in development
 ]

@@ -4,9 +4,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile.dev
     volumes:
-      - ./backend:/app # Mount code for live-reload
+      - ./backend:/app
       - ./database:/database
-      - static_volume:/app/static
+      - static_volume:/app/static_collected # Where collectstatic outputs in dev
       - media_volume:/app/media
     ports:
       - "8000:8000"
