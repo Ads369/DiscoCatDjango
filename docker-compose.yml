@@ -10,7 +10,7 @@ services:
     environment:
       - DEBUG=0
       - DB_PATH=/database/db.sqlite3
-      - DJANGO_ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - DJANGO_SETTINGS_MODULE=evaluator.settings.production
     networks:

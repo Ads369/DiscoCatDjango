@@ -100,11 +100,11 @@ create-env: ## Create a .env file with a new secret key
 		echo "$(YELLOW).env file already exists. Rename or remove it first.$(RESET)"; \
 	else \
 		echo "$(GREEN)Creating .env file with a new secret key...$(RESET)"; \
-		SECRET_KEY=$$(python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"); \
-		echo "DJANGO_SECRET_KEY=$$SECRET_KEY" > .env; \
+		SECRET_KEY=$$(python -c "import random; import string; print(''.join(random.choice(string.ascii_letters + string.digits + string.punctuation.replace('\"', '').replace('\\'', '').replace('\\\\', '').replace('$$', '')) for _ in range(50)))"); \
+		echo "DJANGO_SECRET_KEY=\"$$SECRET_KEY\"" > .env; \
 		echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1" >> .env; \
 		echo "CORS_ALLOWED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000" >> .env; \
 		echo "DB_PATH=/database/db.sqlite3" >> .env; \
-		echo "DEBUG=0" >> .env; \
+		echo "DEBUG=1" >> .env; \
 		echo "$(GREEN).env file created with a new secret key.$(RESET)"; \
 	fi
