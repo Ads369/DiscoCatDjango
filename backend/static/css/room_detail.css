@@ -1,0 +1,343 @@
+/* Layout */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.content-area {
+    flex: 1;
+    overflow: auto;
+    padding: 1rem;
+}
+
+/* Header */
+.page-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Back button */
+.back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    color: #3b82f6;
+    margin-right: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.back-button:hover {
+    background-color: #eff6ff;
+}
+
+/* Ranking items */
+.rank-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+}
+
+.rank-item.active {
+    border-color: #60a5fa;
+    background-color: #eff6ff;
+    transform: scale(1.02);
+}
+
+/* Rank position indicator */
+.rank-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    font-weight: bold;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* Drag handle */
+.drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.5rem;
+    color: #9ca3af;
+    cursor: grab;
+    padding: 0.5rem;
+    border-radius: 9999px;
+    transition: color 0.2s;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+    color: #4b5563;
+}
+
+/* Placeholder for drag target */
+.drop-placeholder {
+    height: 4rem;
+    border: 2px dashed #93c5fd;
+    border-radius: 0.75rem;
+    background-color: #eff6ff;
+    margin-bottom: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.drop-placeholder.visible {
+    opacity: 1;
+}
+
+/* Comments panel */
+.side-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    max-width: 400px;
+    background-color: white;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 30;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+.side-panel.visible {
+    transform: translateX(0);
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Status indicators */
+.status-pill {
+    display: inline-block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+}
+
+.status-pending {
+    background-color: #fff7ed;
+    color: #c2410c;
+}
+
+.status-confirmed {
+    background-color: #ecfdf5;
+    color: #047857;
+}
+
+/* Autosave indicator */
+.autosave-indicator {
+    font-size: 0.875rem;
+    color: #059669;
+    background-color: #d1fae5;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.autosave-indicator.visible {
+    opacity: 1;
+}
+
+/* Image preview */
+.image-preview {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+    background-color: #f3f4f6;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.image-preview:active {
+    transform: scale(0.95);
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Floating action button */
+.floating-button {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 9999px;
+    background-color: #2563eb;
+    color: white;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        background-color 0.2s,
+        transform 0.2s;
+    z-index: 20;
+}
+
+.floating-button:hover {
+    background-color: #1d4ed8;
+}
+
+.floating-button:active {
+    transform: scale(0.95);
+}
+
+/* Instructions modal */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+    opacity: 0;
+    transition: opacity 0.3s;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 90%;
+    max-width: 500px;
+    padding: 1.5rem;
+    transform: scale(0.95);
+    transition: transform 0.3s;
+}
+
+.modal-backdrop.visible {
+    opacity: 1;
+}
+
+.modal-backdrop.visible .modal-content {
+    transform: scale(1);
+}
+
+.instruction-step {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    background-color: #eff6ff;
+    color: #3b82f6;
+    font-weight: bold;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* Button styles */
+.primary-button {
+    background-color: #2563eb;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.primary-button:hover {
+    background-color: #1d4ed8;
+}
+
+.primary-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+    .main-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1rem;
+    }
+
+    .side-panel {
+        position: static;
+        transform: none !important;
+        box-shadow: none;
+        border-left: 1px solid #e5e7eb;
+    }
+
+    .floating-button {
+        display: none;
+    }
+
+    .mobile-only {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    .desktop-only {
+        display: none;
+    }
+
+    .main-container {
+        height: 100vh;
+    }
+
+    .content-area {
+        padding-bottom: 5rem;
+    }
+}

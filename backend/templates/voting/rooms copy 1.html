@@ -1,0 +1,308 @@
+{% extends "voting/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans 'Your Voting Rooms' %}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    /* Room card styles */
+    .room-card {
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
+
+    .room-card:hover {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border-color: #e5e7eb;
+        background-color: #f9fafb;
+    }
+
+    .room-card:active {
+        transform: scale(0.98);
+    }
+
+    /* Room status indicators */
+    .room-status {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+    }
+
+    .room-active {
+        background-color: #ecfdf5;
+        color: #047857;
+    }
+
+    .room-inactive {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+
+    /* Back button/Logout button styling */
+    .icon-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3b82f6;
+        transition: all 0.2s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+
+    .icon-button:hover {
+        background-color: #eff6ff;
+    }
+
+    .icon-button-danger {
+        color: #ef4444;
+    }
+
+    .icon-button-danger:hover {
+        background-color: #fee2e2;
+    }
+
+    .icon-button svg {
+        margin-right: 0.5rem;
+    }
+
+    /* Empty state */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+        text-align: center;
+    }
+
+    .empty-state svg {
+        width: 4rem;
+        height: 4rem;
+        color: #9ca3af;
+        margin-bottom: 1rem;
+    }
+
+    /* User info styles */
+    .user-info {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background-color: #f3f4f6;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .user-avatar {
+        background-color: #dbeafe;
+        color: #3b82f6;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 0.75rem;
+    }
+
+    /* Page header */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    @media (max-width: 640px) {
+        .rooms-container {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="roomsPage" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
+    <div class="page-header">
+        <h1 class="text-2xl font-bold text-gray-800">{% trans 'Your Voting Rooms' %}</h1>
+
+        <button id="logoutButton" class="icon-button icon-button-danger">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V8.5a1 1 0 00-1-1h-2a1 1 0 010-2h2A3 3 0 0118 8.5V16a3 3 0 01-3 3H3a3 3 0 01-3-3V4a3 3 0 013-3h5.5a1 1 0 010 2H3zm4.5 6a1 1 0 010-2h3.5a1 1 0 010 2H7.5z" clip-rule="evenodd" />
+                <path fill-rule="evenodd" d="M12.354 10.354a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L9.586 9H3a1 1 0 100 2h6.586l-1.646 1.646a1 1 0 001.414 1.414l3-3z" clip-rule="evenodd" />
+            </svg>
+            <span>{% trans 'Logout' %}</span>
+        </button>
+    </div>
+
+    <div class="rooms-container">
+        <!-- User info section -->
+        <div id="userInfo" class="user-info hidden">
+            <div class="user-avatar">
+                <span id="userInitials">U</span>
+            </div>
+            <div>
+                <p id="userName" class="font-medium"></p>
+                <p id="userId" class="text-sm text-gray-500"></p>
+            </div>
+        </div>
+
+        <!-- Loading state -->
+        <div id="loadingRooms" class="empty-state">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p class="mt-4 text-gray-600">{% trans 'Loading your rooms...' %}</p>
+        </div>
+
+        <!-- Rooms list -->
+        <div class="hidden" id="roomsList">
+            <!-- Rooms will be loaded here via JavaScript -->
+        </div>
+
+        <!-- Empty state -->
+        <div id="noRooms" class="empty-state hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            <p class="text-gray-600">{% trans "You don't have any active voting rooms." %}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Check if token exists in localStorage
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            window.location.href = "{% url 'login' %}";
+            return;
+        }
+
+        // Get user info for welcome message
+        const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+        if (userInfo.user_id && userInfo.name) {
+            // Show user info section
+            const userInfoSection = document.getElementById("userInfo");
+            userInfoSection.classList.remove("hidden");
+
+            // Set user info
+            document.getElementById("userName").textContent = userInfo.name;
+            document.getElementById("userId").textContent = `ID: ${userInfo.user_id}`;
+
+            // Set initials
+            const initials = userInfo.name
+                .split(' ')
+                .map(word => word[0])
+                .join('')
+                .substring(0, 2)
+                .toUpperCase();
+            document.getElementById("userInitials").textContent = initials;
+        }
+
+        try {
+            // Fetch rooms
+            const response = await fetch("/api/voting/rooms/", {
+                headers: {
+                    Authorization: `Token ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch rooms: ${response.status}`);
+            }
+
+            const rooms = await response.json();
+
+            const roomsList = document.getElementById("roomsList");
+            const loadingElement = document.getElementById("loadingRooms");
+            const noRoomsElement = document.getElementById("noRooms");
+
+            // Hide loading indicator
+            loadingElement.classList.add("hidden");
+
+            if (rooms.length === 0) {
+                noRoomsElement.classList.remove("hidden");
+            } else {
+                roomsList.classList.remove("hidden");
+
+                // Populate rooms list
+                rooms.forEach((room) => {
+                    const roomCard = document.createElement("div");
+                    roomCard.className = "room-card";
+                    roomCard.dataset.roomId = room.id;
+
+                    const statusClass = room.is_active ? "room-active" : "room-inactive";
+                    const statusText = room.is_active ? "{% trans 'Active' %}" : "{% trans 'Inactive' %}";
+
+                    roomCard.innerHTML = `
+                        <h3 class="font-semibold text-lg mb-1">${room.name}</h3>
+                        <p class="text-gray-600 text-sm mb-3">${room.description || "{% trans 'No description' %}"}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-500">${room.participants_count || 0} {% trans 'participants' %}</span>
+                            <span class="room-status ${statusClass}">${statusText}</span>
+                        </div>
+                    `;
+
+                    roomCard.addEventListener("click", () => {
+                        window.location.href = `/room/${room.id}/`;
+                    });
+
+                    roomsList.appendChild(roomCard);
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching rooms:", error);
+
+            const roomsList = document.getElementById("roomsList");
+            const loadingElement = document.getElementById("loadingRooms");
+
+            loadingElement.classList.add("hidden");
+
+            // Create error message
+            const errorElement = document.createElement("div");
+            errorElement.className = "empty-state";
+            errorElement.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-red-500 font-medium">{% trans 'Failed to load rooms' %}</p>
+                <p class="text-gray-600 text-sm mt-1">${error.message}</p>
+                <button id="retryButton" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    {% trans 'Retry' %}
+                </button>
+            `;
+
+            roomsList.parentNode.appendChild(errorElement);
+
+            // Add retry button functionality
+            errorElement.querySelector("#retryButton").addEventListener("click", () => {
+                window.location.reload();
+            });
+        }
+
+        // Logout functionality
+        document.getElementById("logoutButton").addEventListener("click", () => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userInfo");
+            window.location.href = "{% url 'login' %}";
+        });
+    });
+</script>
+{% endblock %}
