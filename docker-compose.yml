@@ -13,6 +13,7 @@ services:
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - DJANGO_SETTINGS_MODULE=evaluator.settings.production
+      - CORS_ALLOW_ALL_ORIGINS=true # Add this line to enable all origins by default
     networks:
       - app-network
     restart: unless-stopped
