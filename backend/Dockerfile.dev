@@ -14,8 +14,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Install Python dependencies
-COPY requirements.dev.txt .
-RUN pip install --no-cache-dir -r requirements.dev.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Make entrypoint script executable
 COPY entrypoint.dev.sh .
