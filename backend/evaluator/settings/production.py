@@ -1,5 +1,3 @@
-import os
-
 from .base import *
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -12,18 +10,31 @@ DEBUG = False
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 
-# CORS settings - fix the empty string issue
-cors_origins = os.environ.get("CORS_ALLOWED_ORIGINS", "")
-if cors_origins:
-    CORS_ALLOWED_ORIGINS = [
-        origin.strip() for origin in cors_origins.split(",") if origin.strip()
-    ]
-else:
-    # If no origins specified, don't set the setting at all
-    # Or set a default value
-    CORS_ALLOWED_ORIGINS = ["http://localhost:8000", "http://127.0.0.1:8000"]
+# CORS settings - completely rewrite this section
+# By default, just allow CORS from localhost
+DEFAULT_CORS_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
 
-CORS_ALLOW_ALL_ORIGINS = False
+# Use CORS_ALLOW_ALL_ORIGINS instead of individual origins if specified
+if os.environ.get("CORS_ALLOW_ALL_ORIGINS", "").lower() in ("true", "1", "yes"):
+    CORS_ALLOW_ALL_ORIGINS = True
+    # Don't set CORS_ALLOWED_ORIGINS when allowing all origins
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
+    # Get origins from environment or use defaults
+    cors_origins_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
+
+    # Only use environment variable if it contains something
+    if cors_origins_env and cors_origins_env.strip():
+        # Filter out any empty strings
+        CORS_ALLOWED_ORIGINS = [
+            origin.strip() for origin in cors_origins_env.split(",") if origin.strip()
+        ]
+    else:
+        # Use default origins if environment variable is empty
+        CORS_ALLOWED_ORIGINS = DEFAULT_CORS_ORIGINS
 
 # Security settings
 SECURE_CONTENT_TYPE_NOSNIFF = True
