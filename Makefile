@@ -102,7 +102,9 @@ create-env: ## Create a .env file with a new secret key
 		echo "$(GREEN)Creating .env file with a new secret key...$(RESET)"; \
 		SECRET_KEY=$$(python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"); \
 		echo "DJANGO_SECRET_KEY=$$SECRET_KEY" > .env; \
-		echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env; \
+		echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1" >> .env; \
+		echo "CORS_ALLOWED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000" >> .env; \
 		echo "DB_PATH=/database/db.sqlite3" >> .env; \
+		echo "DEBUG=0" >> .env; \
 		echo "$(GREEN).env file created with a new secret key.$(RESET)"; \
 	fi
