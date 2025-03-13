@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app # Mount code for live-reload
+      - ./database:/database
+      - static_volume:/app/static
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - DB_PATH=/database/db.sqlite3
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - CORS_ORIGIN_ALLOW_ALL=True
+      - DJANGO_SETTINGS_MODULE=evaluator.settings.development
+    networks:
+      - app-network
+    command: /app/entrypoint.dev.sh
+
+volumes:
+  static_volume:
+  media_volume:
+
+networks:
+  app-network:
+    driver: bridge

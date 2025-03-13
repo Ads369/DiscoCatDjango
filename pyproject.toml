@@ -1,0 +1,21 @@
+[project]
+name = "discocatdjango"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "django>=5.1.7",
+    "django-admin>=2.0.2",
+    "django-cors-headers>=4.7.0",
+    "django-filter>=25.1",
+    "djangorestframework>=3.15.2",
+    "gunicorn>=23.0.0",
+    "pillow>=11.1.0",
+    "python-dotenv>=1.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "django-stubs>=5.1.3",
+]

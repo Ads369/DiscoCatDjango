@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% block title %}Voting System{% endblock %}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            @keyframes gradient {
+                0% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+            .gradient-bg {
+                background: linear-gradient(
+                    -45deg,
+                    #ee7752,
+                    #e73c7e,
+                    #23a6d5,
+                    #23d5ab
+                );
+                background-size: 400% 400%;
+                animation: gradient 15s ease infinite;
+            }
+        </style>
+        {% block extra_styles %}{% endblock %}
+    </head>
+    <body class="gradient-bg min-h-screen flex items-center justify-center">
+        {% block content %}{% endblock %} {% block scripts %}{% endblock %}
+    </body>
+</html>
