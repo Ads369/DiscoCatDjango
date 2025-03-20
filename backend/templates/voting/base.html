@@ -1,25 +1,63 @@
 <!doctype html>
 <html lang="{{ LANGUAGE_CODE|default:'en' }}">
     <head>
-        {% load i18n %}
+        {% load static i18n %}
+        <!-- Favicon (all devices) -->
+        <link
+            rel="icon"
+            href="{% static 'images/favicon.png' %}"
+            type="image/png"
+        />
+
+        <!-- Additional formats for different browsers -->
+        <link
+            rel="shortcut icon"
+            href="{% static 'images/favicon.png' %}"
+            type="image/png"
+        />
+        <link rel="apple-touch-icon" href="{% static 'images/favicon.png' %}" />
+
+        <!-- Cache busting version parameter -->
+        <link rel="icon" href="{% static 'images/favicon.png' %}?v=2" />
+
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
         <meta name="theme-color" content="#23a6d5" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <title>{% block title %}{% trans 'Voting System' %}{% endblock %}</title>
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
+        <title>
+            {% block title %}{% trans 'Voting System' %}{% endblock %}
+        </title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             /* Base Animation Styles */
             @keyframes gradient {
-                0% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
-                100% { background-position: 0% 50%; }
+                0% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                }
             }
 
             /* Background Styles */
             .gradient-bg {
-                background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+                background: linear-gradient(
+                    -45deg,
+                    #ee7752,
+                    #e73c7e,
+                    #23a6d5,
+                    #23d5ab
+                );
                 background-size: 400% 400%;
                 animation: gradient 15s ease infinite;
             }
@@ -37,7 +75,7 @@
 
             /* Link highlighting prevention for mobile */
             * {
-                -webkit-tap-highlight-color: rgba(0,0,0,0);
+                -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
                 -webkit-tap-highlight-color: transparent;
             }
 
@@ -93,8 +131,13 @@
         </style>
         {% block extra_styles %}{% endblock %}
     </head>
-    <body class="gradient-bg min-h-screen flex items-center justify-center antialiased">
-        <div id="app-container" class="flex flex-col items-center justify-center w-full min-h-screen py-4">
+    <body
+        class="gradient-bg min-h-screen flex items-center justify-center antialiased"
+    >
+        <div
+            id="app-container"
+            class="flex flex-col items-center justify-center w-full min-h-screen py-4"
+        >
             {% block content %}{% endblock %}
         </div>
 
@@ -102,7 +145,10 @@
         <div id="modal-container"></div>
 
         <!-- Common Toast Notification -->
-        <div id="toast-notification" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg opacity-0 transition-opacity duration-300 z-50 pointer-events-none"></div>
+        <div
+            id="toast-notification"
+            class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg opacity-0 transition-opacity duration-300 z-50 pointer-events-none"
+        ></div>
 
         <!-- Common Scripts -->
         <script>
@@ -110,28 +156,29 @@
             const translations = {
                 confirmation: "{% trans 'Confirmation' %}",
                 cancel: "{% trans 'Cancel' %}",
-                confirm: "{% trans 'Confirm' %}"
+                confirm: "{% trans 'Confirm' %}",
             };
 
             // Toast notification helper
             function showToast(message, duration = 3000) {
-                const toast = document.getElementById('toast-notification');
+                const toast = document.getElementById("toast-notification");
                 toast.textContent = message;
-                toast.classList.remove('opacity-0');
-                toast.classList.add('opacity-90');
+                toast.classList.remove("opacity-0");
+                toast.classList.add("opacity-90");
 
                 setTimeout(() => {
-                    toast.classList.remove('opacity-90');
-                    toast.classList.add('opacity-0');
+                    toast.classList.remove("opacity-90");
+                    toast.classList.add("opacity-0");
                 }, duration);
             }
 
             // Confirmation dialog helper
             function showConfirmation(message, onConfirm, onCancel) {
-                const modalContainer = document.getElementById('modal-container');
+                const modalContainer =
+                    document.getElementById("modal-container");
 
-                const modal = document.createElement('div');
-                modal.className = 'modal-backdrop opacity-0';
+                const modal = document.createElement("div");
+                modal.className = "modal-backdrop opacity-0";
                 modal.innerHTML = `
                     <div class="modal-content transform scale-95">
                         <div class="text-lg font-semibold mb-3">${translations.confirmation}</div>
@@ -151,28 +198,40 @@
 
                 // Animation
                 setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    modal.classList.add('opacity-100');
-                    modal.querySelector('.modal-content').classList.remove('scale-95');
-                    modal.querySelector('.modal-content').classList.add('scale-100');
+                    modal.classList.remove("opacity-0");
+                    modal.classList.add("opacity-100");
+                    modal
+                        .querySelector(".modal-content")
+                        .classList.remove("scale-95");
+                    modal
+                        .querySelector(".modal-content")
+                        .classList.add("scale-100");
                 }, 10);
 
                 // Event handlers
-                modal.querySelector('#confirm-btn').addEventListener('click', () => {
-                    closeModal();
-                    if (onConfirm) onConfirm();
-                });
+                modal
+                    .querySelector("#confirm-btn")
+                    .addEventListener("click", () => {
+                        closeModal();
+                        if (onConfirm) onConfirm();
+                    });
 
-                modal.querySelector('#cancel-btn').addEventListener('click', () => {
-                    closeModal();
-                    if (onCancel) onCancel();
-                });
+                modal
+                    .querySelector("#cancel-btn")
+                    .addEventListener("click", () => {
+                        closeModal();
+                        if (onCancel) onCancel();
+                    });
 
                 function closeModal() {
-                    modal.classList.remove('opacity-100');
-                    modal.classList.add('opacity-0');
-                    modal.querySelector('.modal-content').classList.remove('scale-100');
-                    modal.querySelector('.modal-content').classList.add('scale-95');
+                    modal.classList.remove("opacity-100");
+                    modal.classList.add("opacity-0");
+                    modal
+                        .querySelector(".modal-content")
+                        .classList.remove("scale-100");
+                    modal
+                        .querySelector(".modal-content")
+                        .classList.add("scale-95");
 
                     setTimeout(() => {
                         modalContainer.removeChild(modal);
@@ -182,10 +241,11 @@
 
             // Image modal helper
             function showImageModal(imageUrl, altText) {
-                const modalContainer = document.getElementById('modal-container');
+                const modalContainer =
+                    document.getElementById("modal-container");
 
-                const modal = document.createElement('div');
-                modal.className = 'modal-backdrop opacity-0';
+                const modal = document.createElement("div");
+                modal.className = "modal-backdrop opacity-0";
                 modal.innerHTML = `
                     <div class="modal-content transform scale-95 p-2 bg-transparent max-w-screen-md mx-auto">
                         <img src="${imageUrl}" alt="${altText}" class="max-w-full max-h-[80vh] object-contain rounded-lg">
@@ -201,23 +261,33 @@
 
                 // Animation
                 setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    modal.classList.add('opacity-100');
-                    modal.querySelector('.modal-content').classList.remove('scale-95');
-                    modal.querySelector('.modal-content').classList.add('scale-100');
+                    modal.classList.remove("opacity-0");
+                    modal.classList.add("opacity-100");
+                    modal
+                        .querySelector(".modal-content")
+                        .classList.remove("scale-95");
+                    modal
+                        .querySelector(".modal-content")
+                        .classList.add("scale-100");
                 }, 10);
 
                 // Close on button click or backdrop click
-                modal.querySelector('button').addEventListener('click', closeModal);
-                modal.addEventListener('click', (e) => {
+                modal
+                    .querySelector("button")
+                    .addEventListener("click", closeModal);
+                modal.addEventListener("click", (e) => {
                     if (e.target === modal) closeModal();
                 });
 
                 function closeModal() {
-                    modal.classList.remove('opacity-100');
-                    modal.classList.add('opacity-0');
-                    modal.querySelector('.modal-content').classList.remove('scale-100');
-                    modal.querySelector('.modal-content').classList.add('scale-95');
+                    modal.classList.remove("opacity-100");
+                    modal.classList.add("opacity-0");
+                    modal
+                        .querySelector(".modal-content")
+                        .classList.remove("scale-100");
+                    modal
+                        .querySelector(".modal-content")
+                        .classList.add("scale-95");
 
                     setTimeout(() => {
                         modalContainer.removeChild(modal);

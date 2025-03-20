@@ -18,11 +18,13 @@ dependencies = [
     { name = "django" },
     { name = "django-admin" },
     { name = "django-cors-headers" },
+    { name = "django-favicon-plus" },
     { name = "django-filter" },
     { name = "djangorestframework" },
     { name = "gunicorn" },
     { name = "pillow" },
     { name = "python-dotenv" },
+    { name = "whitenoise" },
 ]
 
 [package.dev-dependencies]
@@ -35,11 +37,13 @@ requires-dist = [
     { name = "django", specifier = ">=5.1.7" },
     { name = "django-admin", specifier = ">=2.0.2" },
     { name = "django-cors-headers", specifier = ">=4.7.0" },
+    { name = "django-favicon-plus", specifier = ">=0.0.8" },
     { name = "django-filter", specifier = ">=25.1" },
     { name = "djangorestframework", specifier = ">=3.15.2" },
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "pillow", specifier = ">=11.1.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "whitenoise", specifier = ">=6.9.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -73,6 +77,15 @@ wheels = [
 ]
 
 [[package]]
+name = "django-compat"
+version = "1.0.15"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6b/03/84a887c67dbaf8b9fe7a876f44b2c6050c2a247e34e5fad6791fd15cf12f/django-compat-1.0.15.tar.gz", hash = "sha256:3ac9a3bedc56b9365d9eb241bc5157d0c193769bf995f9a78dc1bc24e7c2331b", size = 21980 }
+
+[[package]]
 name = "django-cors-headers"
 version = "4.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -97,6 +110,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/cb/e0/e1745ca77f776f330
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fd/66/44986943e506a3d43de4a8515e7c33bf9dbc43a04707097e8fd17aa9792f/django_excel_response2-3.0.6-py2.py3-none-any.whl", hash = "sha256:fe0c54207caf7efefcad689427bffad9209808e6102becb07967d5f8c92b82c7", size = 4854 },
 ]
+
+[[package]]
+name = "django-favicon-plus"
+version = "0.0.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-compat" },
+    { name = "pillow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b5/99/e9783a1492aa5903a163ef333f4d57899dca140694a3056e390ead46e52b/django-favicon-plus-0.0.8.tar.gz", hash = "sha256:3394a951d8dc611eb1ea027ad1181d7f650ca234506585b27e93d7ed06b981bf", size = 6395 }
 
 [[package]]
 name = "django-filter"
@@ -349,6 +373,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/8b/2e/c14812d3d4d9cd1773c6be938f89e5735a1f11a9f184ac3639b93cef35d5/tzlocal-5.3.1.tar.gz", hash = "sha256:cceffc7edecefea1f595541dbd6e990cb1ea3d19bf01b2809f362a03dd7921fd", size = 30761 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c2/14/e2a54fabd4f08cd7af1c07030603c3356b74da07f7cc056e600436edfa17/tzlocal-5.3.1-py3-none-any.whl", hash = "sha256:eb1a66c3ef5847adf7a834f1be0800581b683b5608e74f86ecbcef8ab91bb85d", size = 18026 },
+]
+
+[[package]]
+name = "whitenoise"
+version = "6.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/cf/c15c2f21aee6b22a9f6fc9be3f7e477e2442ec22848273db7f4eb73d6162/whitenoise-6.9.0.tar.gz", hash = "sha256:8c4a7c9d384694990c26f3047e118c691557481d624f069b7f7752a2f735d609", size = 25920 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/64/b2/2ce9263149fbde9701d352bda24ea1362c154e196d2fda2201f18fc585d7/whitenoise-6.9.0-py3-none-any.whl", hash = "sha256:c8a489049b7ee9889617bb4c274a153f3d979e8f51d2efd0f5b403caf41c57df", size = 20161 },
 ]
 
 [[package]]
