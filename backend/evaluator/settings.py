@@ -38,13 +38,6 @@ if not DEBUG:
 else:
     CORS_ALLOW_ALL_ORIGINS = True
 
-# Security
-# if not DEBUG:
-#     SECURE_HSTS_SECONDS = 31536000  # 1 year
-#     SECURE_SSL_REDIRECT = True
-#     SESSION_COOKIE_SECURE = True
-#     CSRF_COOKIE_SECURE = True
-#     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Static files
 STATIC_URL = "/static/"
@@ -68,13 +61,21 @@ if not DEBUG:
 # Custom User Model
 AUTH_USER_MODEL = "users.CustomUser"
 
-# Security settings for production
-if not DEBUG:
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
-    X_FRAME_OPTIONS = "DENY"
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+# # Security settings for production
+# if not DEBUG:
+#     SECURE_CONTENT_TYPE_NOSNIFF = True
+#     SECURE_BROWSER_XSS_FILTER = True
+#     X_FRAME_OPTIONS = "DENY"
+#     SESSION_COOKIE_SECURE = True
+#     CSRF_COOKIE_SECURE = True
+
+# Security
+# if not DEBUG:
+#     SECURE_HSTS_SECONDS = 31536000  # 1 year
+#     SECURE_SSL_REDIRECT = True
+#     SESSION_COOKIE_SECURE = True
+#     CSRF_COOKIE_SECURE = True
+#     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 INSTALLED_APPS = [
