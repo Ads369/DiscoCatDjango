@@ -4,7 +4,7 @@ services:
     volumes:
       - ./database:/database
       - static_volume:/app/static # Match STATIC_ROOT
-      - ./media:/app/medi
+      - ./media:/app/media
     ports:
       - "8000:8000"
     env_file:
@@ -20,7 +20,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - static_volume:/app/static # Same path as backend
-      - ./media:/app/medi
+      - ./media:/app/media
     depends_on:
       - backend
     networks:
