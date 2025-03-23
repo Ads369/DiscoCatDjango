@@ -91,11 +91,6 @@
                 errorElement.classList.remove("hidden");
                 errorElement.classList.add("text-green-600"); // Add success color
 
-                // Optional: Redirect after delay
-                setTimeout(() => {
-                    window.location.href = "{% url 'rooms' %}";
-                }, 3000);
-
             } catch (error) {
                 errorElement.textContent = `❌ ${error.message}`;
                 errorElement.classList.remove("hidden", "text-green-600");
