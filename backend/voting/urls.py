@@ -19,4 +19,7 @@ urlpatterns = [
         views.update_ranking,
         name="update_ranking",
     ),
+    path(
+        "api/fingerprint/", views.FingerprintAPIView.as_view(), name="fingerprint-api"
+    ),
 ]

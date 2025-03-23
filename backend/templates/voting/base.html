@@ -34,6 +34,55 @@
         <title>
             {% block title %}{% trans 'Voting System' %}{% endblock %}
         </title>
+
+        <!-- Include FingerprintJS from CDN -->
+        <script
+            async
+            src="https://openfpcdn.io/fingerprintjs/v4/iife.min.js"
+        ></script>
+        <script>
+            class FingerprintManager {
+                static async getFingerprint() {
+                    try {
+                        const fp = await FingerprintJS.load();
+                        const { visitorId } = await fp.get();
+                        return visitorId;
+                    } catch (error) {
+                        console.error("Fingerprint error:", error);
+                        return null;
+                    }
+                }
+
+                static async enhanceForm(formElement) {
+                    const fingerprint = await this.getFingerprint();
+                    if (fingerprint) {
+                        let input = formElement.querySelector(
+                            'input[name="fingerprint"]',
+                        );
+                        if (!input) {
+                            input = document.createElement("input");
+                            input.type = "hidden";
+                            input.name = "fingerprint";
+                            formElement.appendChild(input);
+                        }
+                        input.value = fingerprint;
+                    }
+                    return formElement;
+                }
+            }
+        </script>
+        <!-- <script src="https://openfpcdn.io/fingerprintjs/v3"></script>
+        <script>
+            // Initialize an agent at application startup.
+            FingerprintJS.load().then(fp => {
+                // Get the visitor identifier when you need it.
+                fp.get().then(result => {
+                    // Fill the hidden fingerprint input with the computed visitorId.
+                    document.getElementById("id_fingerprint").value = result.visitorId;
+                });
+            });
+        </script> -->
+
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             /* Base Animation Styles */

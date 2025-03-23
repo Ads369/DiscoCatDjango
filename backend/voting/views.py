@@ -1,11 +1,17 @@
 from django.shortcuts import render
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from users.authentication import UUIDTokenAuthentication
 
-from .models import RoomParticipant, VotingObject, VotingRoom
-from .serializers import VotingObjectSerializer, VotingRoomSerializer
+from .models import NickName, RoomParticipant, VotingObject, VotingRoom
+from .serializers import (
+    NickNameSerializer,
+    VotingObjectSerializer,
+    VotingRoomSerializer,
+)
 
 
 def room_detail_view(request, room_id):
@@ -113,3 +119,33 @@ def update_ranking(request, room_id):
         return Response({"error": "Room not found"}, status=404)
     except Exception as e:
         return Response({"error": str(e)}, status=400)
+
+
+def nickname_view(request):
+    return render(request, "voting/nickname.html")
+
+
+class FingerprintAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        serializer = NickNameSerializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(
+                {"message": "Nickname saved successfully!", "data": serializer.data},
+                status=status.HTTP_201_CREATED,
+            )
+        except ValidationError as e:
+            if "fingerprint" in e.detail and any(
+                error.code == "unique" for error in e.detail["fingerprint"]
+            ):
+                return Response(
+                    {
+                        "error": "Вы уже участвуете в Котолиге! Одна кличка на участника 😺"
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)

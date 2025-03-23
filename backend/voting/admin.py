@@ -51,3 +51,9 @@ class RoomParticipantAdmin(admin.ModelAdmin):
     list_filter = ("room", "vote_confirmed")
     readonly_fields = ("vote_data",)
     search_fields = ("user__username", "room__name")
+
+
+@admin.register(NickName)
+class NickNameAdmin(admin.ModelAdmin):
+    list_display = ("name", "fingerprint", "created_at")
+    list_filter = ("created_at",)

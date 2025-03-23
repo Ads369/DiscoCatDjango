@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import VotingObject, VotingRoom
+from .models import NickName, VotingObject, VotingRoom
 
 
 class VotingRoomSerializer(serializers.ModelSerializer):
@@ -30,3 +30,18 @@ class VotingObjectSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.image.url)
             return obj.image.url
         return None
+
+
+# DiscoCatDjango/backend/voting/serializers.py
+class NickNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NickName
+        fields = ["name", "fingerprint"]
+        extra_kwargs = {
+            "fingerprint": {
+                "required": True,
+                "error_messages": {
+                    "unique": "Это устройство уже участвовало в выборе кличек"
+                },
+            }
+        }
