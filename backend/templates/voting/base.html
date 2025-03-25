@@ -32,7 +32,7 @@
             content="black-translucent"
         />
         <title>
-            {% block title %}{% trans 'Voting System' %}{% endblock %}
+            {% block title %}{% trans 'Cat-League' %}{% endblock %}
         </title>
 
         <!-- Include FingerprintJS from CDN -->
@@ -71,17 +71,6 @@
                 }
             }
         </script>
-        <!-- <script src="https://openfpcdn.io/fingerprintjs/v3"></script>
-        <script>
-            // Initialize an agent at application startup.
-            FingerprintJS.load().then(fp => {
-                // Get the visitor identifier when you need it.
-                fp.get().then(result => {
-                    // Fill the hidden fingerprint input with the computed visitorId.
-                    document.getElementById("id_fingerprint").value = result.visitorId;
-                });
-            });
-        </script> -->
 
         <script src="https://cdn.tailwindcss.com"></script>
         <style>

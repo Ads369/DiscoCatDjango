@@ -1,4 +1,5 @@
-{% extends "voting/base.html" %} {% block title %}Room: {{ room_name }}{% endblock %} {% block extra_styles %}
+{% extends "voting/base.html" %} {% block title %}Room: {{ room_name }}{%
+endblock %} {% block extra_styles %}
 <style>
     .drag-item {
         cursor: grab;
@@ -74,7 +75,6 @@
                     clip-rule="evenodd"
                 />
             </svg>
-            Back to Rooms
         </a>
         <h2 id="roomName" class="text-2xl font-bold text-gray-800">
             Loading room...
@@ -89,11 +89,11 @@
         <div class="md:col-span-2">
             <div class="bg-gray-50 rounded-xl p-4 mb-6">
                 <h3 class="font-semibold text-lg mb-2">
-                    Arrange Items from Best to Worst
+                    Расставьте танцоров в порядке от лучшего к худшему.
                 </h3>
                 <p class="text-gray-600 text-sm mb-4">
-                    Drag and drop items to rank them. Position 1 is best, lower
-                    positions are worse.
+                    Зажмите и перенесите, чтобы ранжировать. Позиция 1 - лучшая,
+                    более низкие позиции - хуже.
                 </p>
 
                 <div id="loadingObjects" class="text-center py-8">
@@ -109,7 +109,8 @@
 
                 <div id="noObjects" class="text-center py-8 hidden">
                     <p class="text-gray-600">
-                        This room doesn't have any voting objects to rank.
+                        В этой комнате нет объектов для голосования, которые
+                        можно было бы оценить.
                     </p>
                 </div>
             </div>
@@ -117,29 +118,29 @@
 
         <div class="md:col-span-1">
             <div class="bg-gray-50 rounded-xl p-4 mb-6">
-                <h3 class="font-semibold text-lg mb-2">Your Comments</h3>
+                <h3 class="font-semibold text-lg mb-2">Заметки</h3>
                 <p class="text-gray-600 text-sm mb-4">
-                    Add any comments about your ranking decisions.
+                    Добавляйте любые заметкм по поводу ваших решений о
+                    ранжировании.
                 </p>
 
                 <textarea
                     id="commentsInput"
                     class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows="5"
-                    placeholder="Add your comments here..."
+                    placeholder="Добавляйте свои заметкм здесь..."
                 ></textarea>
             </div>
 
             <div class="bg-gray-50 rounded-xl p-4">
-                <h3 class="font-semibold text-lg mb-2">Confirm Your Ranking</h3>
+                <h3 class="font-semibold text-lg mb-2">Подтвердите Свой Результат</h3>
                 <p class="text-gray-600 text-sm mb-4">
-                    Once confirmed, your ranking will be submitted for final
-                    results.
+                    После подтверждения вы не сможете изменить решение.
                 </p>
 
                 <div id="confirmStatus" class="mb-4">
                     <span id="confirmStatusText" class="text-orange-500"
-                        >Not yet confirmed</span
+                        >Еще не подтверждено</span
                     >
                 </div>
 
@@ -147,7 +148,7 @@
                     id="confirmButton"
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-[1.02] confirm-button"
                 >
-                    Confirm Ranking
+                    Подтвердить
                 </button>
             </div>
         </div>
@@ -228,14 +229,15 @@
                 if (isConfirmed) {
                     const confirmStatusText =
                         document.getElementById("confirmStatusText");
-                    confirmStatusText.textContent = "Ranking confirmed";
+                    confirmStatusText.textContent = "Результаты Отправлены";
+
                     confirmStatusText.classList.remove("text-orange-500");
                     confirmStatusText.classList.add("text-green-600");
 
                     const confirmButton =
                         document.getElementById("confirmButton");
                     confirmButton.disabled = true;
-                    confirmButton.textContent = "Ranking Confirmed";
+                    confirmButton.textContent = "Результаты Отправлены";
                 }
 
                 return true;
@@ -318,7 +320,7 @@
                 if (isConfirmed) {
                     const confirmStatusText =
                         document.getElementById("confirmStatusText");
-                    confirmStatusText.textContent = "Ranking confirmed";
+                    confirmStatusText.textContent = "Ranking Confirmed";
                     confirmStatusText.classList.remove("text-orange-500");
                     confirmStatusText.classList.add("text-green-600");
 
@@ -393,7 +395,7 @@
                         ${imageHtml}
                         <div class="flex-grow">
                             <h3 class="font-semibold text-lg">${object.name}</h3>
-                            <p class="text-gray-600 text-sm">${object.description || "No description"}</p>
+                            <p class="text-gray-600 text-sm">${object.description || ""}</p>
                         </div>
                     `;
 
@@ -450,11 +452,11 @@
                     if (success) {
                         // Update UI
                         confirmButton.disabled = true;
-                        confirmButton.textContent = "Ranking Confirmed";
+                        confirmButton.textContent = "Результаты Отправлены";
 
                         const confirmStatusText =
                             document.getElementById("confirmStatusText");
-                        confirmStatusText.textContent = "Ranking confirmed";
+                        confirmStatusText.textContent = "Результаты отправлены";
                         confirmStatusText.classList.remove("text-orange-500");
                         confirmStatusText.classList.add("text-green-600");
 
