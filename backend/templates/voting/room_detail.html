@@ -1,5 +1,5 @@
-{% extends "voting/base.html" %} {% block title %}Room: {{ room_name }}{%
-endblock %} {% block extra_styles %}
+{% extends "voting/base.html" %} {% load static %} {% block title %}Room: {{
+room_name }}{% endblock %} {% block extra_styles %}
 <style>
     .drag-item {
         cursor: grab;
@@ -52,8 +52,40 @@ endblock %} {% block extra_styles %}
     .pulse {
         animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
+    .toast {
+        transition: opacity 0.3s ease-out;
+    }
+    .toast.fade-out {
+        opacity: 0;
+    }
+    .toast-error {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+    .toast-success {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    .skeleton-loader {
+        background: linear-gradient(
+            90deg,
+            #f0f0f0 25%,
+            #e0e0e0 50%,
+            #f0f0f0 75%
+        );
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+    @keyframes loading {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
 </style>
-{% endblock %} {% block content %}
+{% endblock %} {% block content %} {% csrf_token %}
 <div
     id="roomDetailPage"
     class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-5xl mx-4"
@@ -62,12 +94,14 @@ endblock %} {% block extra_styles %}
         <a
             href="{% url 'rooms' %}"
             class="text-blue-500 hover:underline flex items-center"
+            aria-label="Back to rooms"
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-5 w-5 mr-1"
                 viewBox="0 0 20 20"
                 fill="currentColor"
+                aria-hidden="true"
             >
                 <path
                     fill-rule="evenodd"
@@ -75,6 +109,7 @@ endblock %} {% block extra_styles %}
                     clip-rule="evenodd"
                 />
             </svg>
+            <span>Back to Rooms</span>
         </a>
         <h2 id="roomName" class="text-2xl font-bold text-gray-800">
             Loading room...
@@ -96,6 +131,14 @@ endblock %} {% block extra_styles %}
                     более низкие позиции - хуже.
                 </p>
 
+                <div
+                    id="accessibility-instructions"
+                    class="text-gray-500 text-xs mb-4 italic"
+                >
+                    Используйте клавиши со стрелками вверх и вниз для
+                    перемещения элементов с помощью клавиатуры.
+                </div>
+
                 <div id="loadingObjects" class="text-center py-8">
                     <div
                         class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"
@@ -103,9 +146,12 @@ endblock %} {% block extra_styles %}
                     <p class="mt-4 text-gray-600">Loading objects...</p>
                 </div>
 
-                <div id="rankingContainer" class="ranking-area hidden">
-                    <!-- Objects will be loaded here for ranking -->
-                </div>
+                <div
+                    id="rankingContainer"
+                    class="ranking-area hidden"
+                    role="list"
+                    aria-label="Ranking items"
+                ></div>
 
                 <div id="noObjects" class="text-center py-8 hidden">
                     <p class="text-gray-600">
@@ -129,11 +175,14 @@ endblock %} {% block extra_styles %}
                     class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows="5"
                     placeholder="Добавляйте свои заметкм здесь..."
+                    aria-label="Comments about your ranking"
                 ></textarea>
             </div>
 
             <div class="bg-gray-50 rounded-xl p-4">
-                <h3 class="font-semibold text-lg mb-2">Подтвердите Свой Результат</h3>
+                <h3 class="font-semibold text-lg mb-2">
+                    Подтвердите Свой Результат
+                </h3>
                 <p class="text-gray-600 text-sm mb-4">
                     После подтверждения вы не сможете изменить решение.
                 </p>
@@ -147,6 +196,7 @@ endblock %} {% block extra_styles %}
                 <button
                     id="confirmButton"
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-[1.02] confirm-button"
+                    aria-label="Confirm your ranking"
                 >
                     Подтвердить
                 </button>
@@ -154,440 +204,12 @@ endblock %} {% block extra_styles %}
         </div>
     </div>
 
-    <div id="errorMessage" class="mt-4 text-red-600 text-center hidden"></div>
+    <div
+        id="errorMessage"
+        class="mt-4 text-red-600 text-center hidden"
+        role="alert"
+    ></div>
 </div>
 {% endblock %} {% block scripts %}
-<script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        // Check if token exists in localStorage
-        const token = localStorage.getItem("token");
-        if (!token) {
-            window.location.href = "{% url 'login' %}";
-            return;
-        }
-
-        const roomId = window.location.pathname.split("/").filter(Boolean)[1];
-
-        // Variables to track state
-        let objects = [];
-        let userRanking = {};
-        let comments = "";
-        let isConfirmed = false;
-        let saveTimeout = null;
-
-        const showAutosaveIndicator = () => {
-            const indicator = document.getElementById("autosaveIndicator");
-            indicator.classList.remove("opacity-0");
-            indicator.classList.add("opacity-100");
-
-            // Hide after 3 seconds
-            setTimeout(() => {
-                indicator.classList.remove("opacity-100");
-                indicator.classList.add("opacity-0");
-            }, 3000);
-        };
-
-        const saveRanking = async (shouldShowIndicator = true) => {
-            // Clear any pending save
-            if (saveTimeout) clearTimeout(saveTimeout);
-
-            try {
-                const response = await fetch(
-                    `/api/voting/rooms/${roomId}/update-ranking/`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Authorization: `Token ${token}`,
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            vote_data: userRanking,
-                            comments: comments,
-                            vote_confirmed: isConfirmed,
-                        }),
-                    },
-                );
-
-                if (!response.ok) {
-                    let errorData;
-                    try {
-                        errorData = await response.json();
-                    } catch (e) {
-                        const errorText = await response.text();
-                        errorData = { error: errorText };
-                    }
-                    throw new Error(errorData.error || response.statusText);
-                }
-
-                const data = await response.json();
-
-                if (shouldShowIndicator) {
-                    showAutosaveIndicator();
-                }
-
-                // Update UI if ranking was confirmed
-                if (isConfirmed) {
-                    const confirmStatusText =
-                        document.getElementById("confirmStatusText");
-                    confirmStatusText.textContent = "Результаты Отправлены";
-
-                    confirmStatusText.classList.remove("text-orange-500");
-                    confirmStatusText.classList.add("text-green-600");
-
-                    const confirmButton =
-                        document.getElementById("confirmButton");
-                    confirmButton.disabled = true;
-                    confirmButton.textContent = "Результаты Отправлены";
-                }
-
-                return true;
-            } catch (error) {
-                console.error("Error saving ranking:", error);
-                return false;
-            }
-        };
-
-        const scheduleSave = () => {
-            // Clear any pending save
-            if (saveTimeout) clearTimeout(saveTimeout);
-
-            // Schedule a new save in 2 seconds
-            saveTimeout = setTimeout(() => {
-                saveRanking();
-            }, 2000);
-        };
-
-        const updateRanking = () => {
-            // Update the userRanking object based on current order
-            const rankingItems = document.querySelectorAll(".drag-item");
-            userRanking = {};
-
-            rankingItems.forEach((item, index) => {
-                const objectId = item.dataset.objectId;
-                userRanking[objectId] = index + 1; // 1-based position
-
-                // Update position indicator
-                const positionIndicator = item.querySelector(
-                    ".position-indicator",
-                );
-                positionIndicator.textContent = index + 1;
-            });
-
-            // Schedule auto-save
-            scheduleSave();
-        };
-
-        try {
-            // Fetch room details
-            const roomResponse = await fetch(`/api/voting/rooms/${roomId}/`, {
-                headers: {
-                    Authorization: `Token ${token}`,
-                },
-            });
-
-            if (!roomResponse.ok) {
-                const errorText = await roomResponse.text();
-                console.error("Room details error:", errorText);
-                throw new Error("Failed to fetch room details");
-            }
-
-            const room = await roomResponse.json();
-            document.getElementById("roomName").textContent = room.name;
-            document.title = `Room: ${room.name}`;
-
-            // Fetch current participant status for this room
-            const participantResponse = await fetch(
-                `/api/voting/rooms/${roomId}/participant-status/`,
-                {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                    },
-                },
-            );
-
-            if (participantResponse.ok) {
-                const participantData = await participantResponse.json();
-
-                // Set initial values
-                userRanking = participantData.vote_data || {};
-                comments = participantData.comments || "";
-                isConfirmed = participantData.vote_confirmed || false;
-
-                // Update UI with saved comments
-                document.getElementById("commentsInput").value = comments;
-
-                // Update confirmation status
-                if (isConfirmed) {
-                    const confirmStatusText =
-                        document.getElementById("confirmStatusText");
-                    confirmStatusText.textContent = "Ranking Confirmed";
-                    confirmStatusText.classList.remove("text-orange-500");
-                    confirmStatusText.classList.add("text-green-600");
-
-                    const confirmButton =
-                        document.getElementById("confirmButton");
-                    confirmButton.disabled = true;
-                    confirmButton.textContent = "Ranking Confirmed";
-                }
-            }
-
-            // Fetch objects in this room
-            const objectsResponse = await fetch(
-                `/api/voting/rooms/${roomId}/objects/`,
-                {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                    },
-                },
-            );
-
-            if (!objectsResponse.ok) {
-                const errorText = await objectsResponse.text();
-                console.error("Objects error:", errorText);
-                throw new Error("Failed to fetch voting objects");
-            }
-
-            objects = await objectsResponse.json();
-
-            const rankingContainer =
-                document.getElementById("rankingContainer");
-            const loadingElement = document.getElementById("loadingObjects");
-            const noObjectsElement = document.getElementById("noObjects");
-
-            // Hide loading indicator
-            loadingElement.classList.add("hidden");
-
-            if (objects.length === 0) {
-                noObjectsElement.classList.remove("hidden");
-            } else {
-                rankingContainer.classList.remove("hidden");
-
-                // Sort objects based on saved ranking if available
-                if (Object.keys(userRanking).length > 0) {
-                    objects.sort((a, b) => {
-                        const rankA = userRanking[a.id] || 9999;
-                        const rankB = userRanking[b.id] || 9999;
-                        return rankA - rankB;
-                    });
-                }
-
-                // Populate ranking container
-                objects.forEach((object, index) => {
-                    const position = userRanking[object.id] || index + 1;
-
-                    const objectCard = document.createElement("div");
-                    objectCard.className =
-                        "drag-item bg-white p-4 rounded-xl shadow mb-4 flex items-center";
-                    objectCard.dataset.objectId = object.id;
-                    objectCard.draggable = !isConfirmed;
-
-                    let imageHtml = "";
-                    if (object.image_url) {
-                        imageHtml = `
-                            <div class="flex-shrink-0 mr-4">
-                                <img src="${object.image_url}" alt="${object.name}" class="w-16 h-16 object-cover rounded-lg">
-                            </div>
-                        `;
-                    }
-
-                    objectCard.innerHTML = `
-                        <div class="position-indicator">${position}</div>
-                        ${imageHtml}
-                        <div class="flex-grow">
-                            <h3 class="font-semibold text-lg">${object.name}</h3>
-                            <p class="text-gray-600 text-sm">${object.description || ""}</p>
-                        </div>
-                    `;
-
-                    // Only add drag events if not confirmed
-                    if (!isConfirmed) {
-                        objectCard.addEventListener(
-                            "dragstart",
-                            handleDragStart,
-                        );
-                        objectCard.addEventListener("dragend", handleDragEnd);
-                    } else {
-                        objectCard.classList.add("opacity-75");
-                    }
-
-                    rankingContainer.appendChild(objectCard);
-                });
-
-                // Add drop zone highlighting
-                rankingContainer.addEventListener("dragover", handleDragOver);
-                rankingContainer.addEventListener("dragleave", handleDragLeave);
-                rankingContainer.addEventListener("drop", handleDrop);
-            }
-
-            // Comments handling
-            const commentsInput = document.getElementById("commentsInput");
-            commentsInput.addEventListener("input", () => {
-                comments = commentsInput.value;
-                scheduleSave();
-            });
-
-            // Disable comments if already confirmed
-            if (isConfirmed) {
-                commentsInput.disabled = true;
-            }
-
-            // Confirm button handling
-            const confirmButton = document.getElementById("confirmButton");
-            confirmButton.addEventListener("click", async () => {
-                if (isConfirmed) return;
-
-                if (Object.keys(userRanking).length !== objects.length) {
-                    alert("Please rank all items before confirming.");
-                    return;
-                }
-
-                if (
-                    confirm(
-                        "Are you sure you want to confirm your ranking? This action cannot be undone.",
-                    )
-                ) {
-                    isConfirmed = true;
-                    const success = await saveRanking(false);
-
-                    if (success) {
-                        // Update UI
-                        confirmButton.disabled = true;
-                        confirmButton.textContent = "Результаты Отправлены";
-
-                        const confirmStatusText =
-                            document.getElementById("confirmStatusText");
-                        confirmStatusText.textContent = "Результаты отправлены";
-                        confirmStatusText.classList.remove("text-orange-500");
-                        confirmStatusText.classList.add("text-green-600");
-
-                        // Disable dragging and comments
-                        document
-                            .querySelectorAll(".drag-item")
-                            .forEach((item) => {
-                                item.draggable = false;
-                                item.classList.add("opacity-75");
-                                item.removeEventListener(
-                                    "dragstart",
-                                    handleDragStart,
-                                );
-                                item.removeEventListener(
-                                    "dragend",
-                                    handleDragEnd,
-                                );
-                            });
-
-                        commentsInput.disabled = true;
-
-                        // Show success message
-                        alert("Your ranking has been confirmed successfully!");
-                    } else {
-                        isConfirmed = false;
-                        alert("Failed to confirm ranking. Please try again.");
-                    }
-                }
-            });
-        } catch (error) {
-            console.error("Error:", error);
-            const loadingElement = document.getElementById("loadingObjects");
-            loadingElement.classList.add("hidden");
-
-            const errorElement = document.getElementById("errorMessage");
-            errorElement.textContent = `❌ ${error.message}`;
-            errorElement.classList.remove("hidden");
-        }
-
-        // Drag and Drop Functions
-        let draggedItem = null;
-
-        function handleDragStart(e) {
-            if (isConfirmed) return;
-
-            draggedItem = this;
-            this.classList.add("dragging");
-
-            // For Firefox
-            e.dataTransfer.setData("text/plain", "");
-            e.dataTransfer.effectAllowed = "move";
-
-            // Hide ghost image in newer browsers
-            try {
-                const img = new Image();
-                img.src =
-                    "data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=";
-                e.dataTransfer.setDragImage(img, 0, 0);
-            } catch (err) {
-                console.log("Could not set empty drag image, using default");
-            }
-        }
-
-        function handleDragEnd(e) {
-            if (isConfirmed) return;
-
-            this.classList.remove("dragging");
-            document.querySelectorAll(".drop-zone").forEach((zone) => {
-                zone.classList.remove("highlight");
-            });
-        }
-
-        function handleDragOver(e) {
-            if (isConfirmed) return;
-
-            e.preventDefault();
-            e.dataTransfer.dropEffect = "move";
-
-            const rankingContainer =
-                document.getElementById("rankingContainer");
-            rankingContainer.classList.add("highlight");
-
-            // Get the closest object under the pointer
-            const y = e.clientY;
-            const draggableElements = [
-                ...document.querySelectorAll(".drag-item:not(.dragging)"),
-            ];
-
-            const nextElement = draggableElements.reduce(
-                (closest, child) => {
-                    const box = child.getBoundingClientRect();
-                    const offset = y - box.top - box.height / 2;
-
-                    if (offset < 0 && offset > closest.offset) {
-                        return { offset: offset, element: child };
-                    } else {
-                        return closest;
-                    }
-                },
-                { offset: Number.NEGATIVE_INFINITY },
-            ).element;
-
-            if (nextElement) {
-                rankingContainer.insertBefore(draggedItem, nextElement);
-            } else {
-                rankingContainer.appendChild(draggedItem);
-            }
-
-            // Update ranking after each move
-            updateRanking();
-        }
-
-        function handleDragLeave(e) {
-            if (isConfirmed) return;
-
-            const rankingContainer =
-                document.getElementById("rankingContainer");
-            rankingContainer.classList.remove("highlight");
-        }
-
-        function handleDrop(e) {
-            if (isConfirmed) return;
-
-            e.preventDefault();
-            const rankingContainer =
-                document.getElementById("rankingContainer");
-            rankingContainer.classList.remove("highlight");
-
-            // Final update to ranking
-            updateRanking();
-        }
-    });
-</script>
+<script src="{% static 'js/room_detail.js' %}"></script>
 {% endblock %}
