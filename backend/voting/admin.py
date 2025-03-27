@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from backend.voting.service import calculate_room_ranking
+from voting.service import calculate_room_ranking
 
 from .models import *
 
