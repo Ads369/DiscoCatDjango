@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from backend.voting.service import calculate_room_ranking
+
 from .models import *
 
 
@@ -31,11 +33,6 @@ class VotingRoomAdmin(admin.ModelAdmin):
         for room in queryset:
             calculate_room_ranking(room)
         self.message_user(request, "Grades calculation initiated")
-
-
-def calculate_room_ranking(room):
-    # Placeholder for ranking calculation logic
-    pass
 
 
 @admin.register(VotingObject)

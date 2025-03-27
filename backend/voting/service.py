@@ -1,11 +1,20 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union, cast
 
 
-def calculate_room_ranking(room):
-    """Calculate the final rankings for a room based on participants' votes"""
+def calculate_room_ranking(room) -> Dict[str, Dict[str, object]]:
+    """
+    Calculate the final rankings for a room based on participants' votes using the Skating system.
+
+    This provides a more sophisticated approach to ranking that handles:
+    - Incomplete votes
+    - Tie breaking with proper competition-style ranking
+    - Majority consensus rather than simple averages
+
+    Returns a dictionary mapping object IDs to their ranking details.
+    """
     from voting.models import RoomParticipant, VotingObject
 
     confirmed_rankings = RoomParticipant.objects.filter(room=room, vote_confirmed=True)
@@ -15,42 +24,89 @@ def calculate_room_ranking(room):
         if hasattr(room, "final_results"):
             room.final_results = {}
             room.save()
-        return
+        return {}
 
     # Get all objects in this room
     objects = VotingObject.objects.filter(room=room)
+    object_id_to_title = {str(obj.id): obj.title for obj in objects}
 
-    # Calculate scores for each object
-    results = {}
+    # Convert participant vote data into ballots for the skating system
+    # Each ballot is a list of object IDs ranked from best to worst
+    ballots: List[List[str]] = []
+
+    for ranking in confirmed_rankings:
+        if not ranking.vote_data:
+            continue
+
+        # Convert the vote data format from {obj_id: position} to an ordered list
+        # First create a list of (object_id, position) tuples
+        positions = [
+            (obj_id, int(position)) for obj_id, position in ranking.vote_data.items()
+        ]
+        # Sort by position (ascending order - lower position is better)
+        positions.sort(key=lambda x: x[1])
+        # Extract just the object IDs in their ranked order
+        ballot = [obj_id for obj_id, _ in positions]
+        ballots.append(ballot)
+
+    # Use the skating system to determine the final rankings
+    if not ballots:
+        # No valid ballots found
+        if hasattr(room, "final_results"):
+            room.final_results = {}
+            room.save()
+        return {}
+
+    skating_results = skating_system(ballots)
+
+    # Convert skating results to the required output format
+    results: Dict[str, Dict[str, Any]] = {}
+
+    # Create a mapping of object_id -> details about votes
+    vote_details: Dict[str, Dict[str, int]] = {str(obj.id): {} for obj in objects}
+    for ballot in ballots:
+        for rank, obj_id in enumerate(ballot, start=1):
+            vote_details[obj_id][rank] = vote_details[obj_id].get(rank, 0) + 1
+
+    # Process each object's skating result
+    for obj_id, final_rank in skating_results:
+        # Calculate the average position from the raw vote data
+        positions = []
+        for rank, count in vote_details[obj_id].items():
+            positions.extend([rank] * count)
+
+        avg_position = sum(positions) / len(positions) if positions else 0
+        vote_count = len(positions)
+
+        results[obj_id] = {
+            "final_rank": final_rank,
+            "average_position": round(
+                avg_position, 2
+            ),  # Round to 2 decimal places for readability
+            "vote_count": vote_count,
+            "title": object_id_to_title.get(obj_id, "Unknown"),
+            "vote_distribution": vote_details[
+                obj_id
+            ],  # Include detailed vote breakdown
+        }
+
+    # Include objects with no votes
     for obj in objects:
         obj_id = str(obj.id)
-
-        # Get all rankings for this object
-        positions = []
-        for ranking in confirmed_rankings:
-            if ranking.vote_data and obj_id in ranking.vote_data:
-                positions.append(ranking.vote_data[obj_id])
-
-        if positions:
-            # Calculate average position (lower is better)
-            avg_position = sum(positions) / len(positions)
+        if obj_id not in results:
             results[obj_id] = {
-                "average_position": avg_position,
-                "vote_count": len(positions),
+                "final_rank": len(skating_results)
+                + 1,  # Place after all ranked objects
+                "average_position": 0,
+                "vote_count": 0,
                 "title": obj.title,
+                "vote_distribution": {},
             }
 
-    # Sort by average position (ascending)
-    sorted_results = {
-        k: v
-        for k, v in sorted(
-            results.items(), key=lambda item: item[1]["average_position"]
-        )
+    # Sort by final rank for consistency
+    sorted_results: Dict[str, Dict[str, Any]] = {
+        k: v for k, v in sorted(results.items(), key=lambda item: item[1]["final_rank"])
     }
-
-    # Add final rank to each object
-    for i, (obj_id, data) in enumerate(sorted_results.items()):
-        sorted_results[obj_id]["final_rank"] = i + 1
 
     # Store results in room
     if hasattr(room, "final_results"):
@@ -161,18 +217,18 @@ def skating_system(ballots: List[List[str]]) -> List[Tuple[str, int]]:
 
 # # ---------------------------
 # # Example usage and test
-# if __name__ == '__main__':
-#     # Example ballots:
-#     # Four judges rank three couples ("A", "B", "C").
-#     # Notice that ballots can be incomplete.
-#     ballots_example = [
-#         ['A', 'B', 'C'],
-#         ['B', 'A', 'C'],
-#         ['A', 'C'],      # Incomplete ballot (no ranking for "B")
-#         ['B', 'C', 'A']
-#     ]
+if __name__ == "__main__":
+    # Example ballots:
+    # Four judges rank three couples ("A", "B", "C").
+    # Notice that ballots can be incomplete.
+    ballots_example = [
+        ["A", "B", "C"],
+        ["B", "A", "C"],
+        ["A", "C"],  # Incomplete ballot (no ranking for "B")
+        ["B", "C", "A"],
+    ]
 
-#     results = skating_system(ballots_example)
-#     print("Final Placements:")
-#     for couple, place in results:
-#         print(f"Couple {couple}: Place {place}")
+    results = skating_system(ballots_example)
+    print("Final Placements:")
+    for couple, place in results:
+        print(f"Couple {couple}: Place {place}")
